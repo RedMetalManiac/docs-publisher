@@ -8,3 +8,9 @@ export type Article = {
   excerpt: string;
   body: string[];
 };
+
+/** Fields used by homepage cards and similar list UIs. */
+export type ArticleListItem = Pick<
+  Article,
+  "slug" | "title" | "excerpt" | "publishedAt" | "readTimeMinutes"
+>;

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { Article } from "@/types/article";
+import type { ArticleListItem } from "@/types/article";
 
 type ArticleCardProps = {
-  article: Article;
+  article: ArticleListItem;
 };
 
 function formatDate(iso: string) {

@@ -4,7 +4,7 @@ import { ReadingContainer } from "@/components/typography/reading-container";
 
 export const metadata: Metadata = {
   title: "Submit",
-  description: "Send us your draft, outline, or pitch.",
+  description: "Publish a story from a published Google Doc.",
 };
 
 export default function SubmitPage() {
@@ -21,8 +21,9 @@ export default function SubmitPage() {
           Submit a story
         </h1>
         <p className="mt-4 max-w-xl font-sans text-base leading-relaxed text-muted sm:text-lg">
-          Share a working title, your email, and either a short pitch or a full
-          draft. We read everything—no accounts required yet.
+          Paste the <strong className="font-medium text-foreground">published</strong> link to your
+          Google Doc. We import the content, pick a URL slug from the title, and create a live
+          article—no account required yet.
         </p>
         <div className="mt-12 max-w-xl">
           <SubmitForm />

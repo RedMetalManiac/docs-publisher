@@ -52,6 +52,60 @@ body {
   margin-top: 1.35em;
 }
 
+.prose-article h1,
+.prose-article h2,
+.prose-article h3,
+.prose-article h4,
+.prose-article h5,
+.prose-article h6 {
+  margin-top: 1.35em;
+  margin-bottom: 0.45em;
+  font-family: var(--font-serif), ui-serif, Georgia, serif;
+  font-weight: 600;
+  line-height: 1.22;
+  color: var(--foreground);
+}
+
+.prose-article h1:first-child,
+.prose-article h2:first-child,
+.prose-article h3:first-child,
+.prose-article h4:first-child,
+.prose-article h5:first-child,
+.prose-article h6:first-child {
+  margin-top: 0;
+}
+
+.prose-article ul,
+.prose-article ol {
+  margin: 1.1em 0;
+  padding-left: 1.5em;
+}
+
+.prose-article li + li {
+  margin-top: 0.35em;
+}
+
+.prose-article blockquote {
+  margin: 1.25em 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+}
+
+.prose-article img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.35em auto;
+}
+
+/* Google export often wraps blocks in extra divs */
+.prose-article > div + div,
+.prose-article > div + p,
+.prose-article > p + div {
+  margin-top: 1.15em;
+}
+
 .prose-article p:first-of-type::first-letter {
   float: left;
   margin-right: 0.08em;

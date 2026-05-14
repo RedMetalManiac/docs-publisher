@@ -1,10 +1,13 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/home/article-card";
 import { ReadingContainer } from "@/components/typography/reading-container";
-import { getAllArticles } from "@/lib/articles";
+import { getRecentPosts } from "@/src/lib/posts/queries";
 
-export default function HomePage() {
-  const articles = getAllArticles();
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const articles = await getRecentPosts(20);
+  const latestSlug = articles[0]?.slug;
 
   return (
     <div className="flex flex-1 flex-col">
@@ -17,8 +20,7 @@ export default function HomePage() {
             Ideas deserve quiet pages and room to breathe.
           </h1>
           <p className="mt-6 max-w-xl font-sans text-lg leading-relaxed text-muted sm:text-xl">
-            Essays, notes, and letters—published with the same restraint you
-            bring to the writing itself.
+            Essays, stories, and papers—published for free, directly from google docs
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
@@ -27,12 +29,14 @@ export default function HomePage() {
             >
               Submit a story
             </Link>
-            <Link
-              href={`/article/${articles[0]?.slug ?? "on-quiet-writing"}`}
-              className="inline-flex h-11 items-center justify-center rounded-full border border-border px-7 font-sans text-sm font-medium text-foreground transition-colors hover:bg-muted-surface"
-            >
-              Read the latest
-            </Link>
+            {latestSlug ? (
+              <Link
+                href={`/article/${latestSlug}`}
+                className="inline-flex h-11 items-center justify-center rounded-full border border-border px-7 font-sans text-sm font-medium text-foreground transition-colors hover:bg-muted-surface"
+              >
+                Read the latest
+              </Link>
+            ) : null}
           </div>
         </ReadingContainer>
       </section>
@@ -45,9 +49,19 @@ export default function HomePage() {
             </h2>
           </div>
           <div>
-            {articles.map((article) => (
-              <ArticleCard key={article.slug} article={article} />
-            ))}
+            {articles.length === 0 ? (
+              <p className="py-16 font-sans text-sm text-muted">
+                No posts yet.{" "}
+                <Link href="/submit" className="font-medium text-accent underline-offset-2 hover:underline">
+                  Publish your first Google Doc
+                </Link>
+                .
+              </p>
+            ) : (
+              articles.map((article) => (
+                <ArticleCard key={article.slug} article={article} />
+              ))
+            )}
           </div>
         </ReadingContainer>
       </section>
