@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { adminLogout } from "./actions";
 import { getAllPostsForAdmin } from "./posts-actions";
+import { getTagsForPost } from "@/src/lib/tags/actions";
 import type { Database } from "@/src/lib/supabase/client";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
@@ -157,9 +158,23 @@ function EditPostModal({
     excerpt: post.excerpt,
     author: post.author,
     published: post.published,
+    tags: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loadingTags, setLoadingTags] = useState(true);
+
+  useEffect(() => {
+    async function loadTags() {
+      const tags = await getTagsForPost(post.id);
+      setFormData((prev) => ({
+        ...prev,
+        tags: tags.map((t) => t.name).join(", "),
+      }));
+      setLoadingTags(false);
+    }
+    loadTags();
+  }, [post.id]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -237,6 +252,21 @@ function EditPostModal({
                 setFormData({ ...formData, author: e.target.value })
               }
               className="mt-1 block w-full rounded-md border border-border bg-background px-3 py-2 font-sans text-sm text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            />
+          </div>
+          <div>
+            <label className="block font-sans text-sm font-medium text-foreground">
+              Tags <span className="font-normal text-muted">(comma-separated)</span>
+            </label>
+            <input
+              type="text"
+              value={formData.tags}
+              onChange={(e) =>
+                setFormData({ ...formData, tags: e.target.value })
+              }
+              disabled={loadingTags}
+              placeholder="design, writing, technology"
+              className="mt-1 block w-full rounded-md border border-border bg-background px-3 py-2 font-sans text-sm text-foreground focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-50"
             />
           </div>
           <div className="flex items-center">

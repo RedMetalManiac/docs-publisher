@@ -8,6 +8,7 @@ import {
 } from "@/src/lib/parser/google-docs-parser";
 import { allocateUniqueSlug } from "@/src/lib/posts/slug";
 import { estimateReadMinutesFromHtml } from "@/src/lib/posts/read-time";
+import { associateTagsWithPost } from "@/src/lib/tags/actions";
 import type { SubmitGoogleDocState } from "./submit-state";
 
 export type { SubmitGoogleDocState } from "./submit-state";
@@ -19,6 +20,7 @@ export async function submitGoogleDocPost(
   const sourceUrl = (formData.get("source_url") ?? "").toString().trim();
   const authorRaw = (formData.get("author") ?? "").toString().trim();
   const author = authorRaw || "Contributor";
+  const tagsRaw = (formData.get("tags") ?? "").toString().trim();
 
   if (!sourceUrl) {
     return { error: "Paste the published Google Doc URL." };
@@ -48,18 +50,37 @@ export async function submitGoogleDocPost(
 
   const read_time_minutes = estimateReadMinutesFromHtml(parsed.html);
 
-  const { error } = await supabase.from("posts").insert({
-    slug,
-    title: parsed.title,
-    excerpt: parsed.excerpt,
-    content_html: parsed.html,
-    author,
-    source_url: sourceUrl,
-    read_time_minutes,
-  });
+  const { data: post, error } = await supabase
+    .from("posts")
+    .insert({
+      slug,
+      title: parsed.title,
+      excerpt: parsed.excerpt,
+      content_html: parsed.html,
+      author,
+      source_url: sourceUrl,
+      read_time_minutes,
+    })
+    .select()
+    .single();
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Associate tags with the post
+  if (tagsRaw) {
+    const tagNames = tagsRaw
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
+
+    if (tagNames.length > 0) {
+      const tagResult = await associateTagsWithPost(post.id, tagNames);
+      if (tagResult.error) {
+        return { error: tagResult.error };
+      }
+    }
   }
 
   redirect(`/article/${slug}`);

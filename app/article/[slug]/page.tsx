@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ReadingContainer } from "@/components/typography/reading-container";
 import { sanitizeArticleHtml } from "@/src/lib/parser/google-docs-parser";
 import { getPostBySlug } from "@/src/lib/posts/queries";
+import { CommentsSidebar } from "@/components/comments/comments-sidebar";
+import { getTagsForPost } from "@/src/lib/tags/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +44,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   }
 
   const safeHtml = sanitizeArticleHtml(post.content_html);
+  const tags = await getTagsForPost(post.id);
 
   return (
     <div className="flex flex-1 flex-col pb-20 pt-12 sm:pt-16 lg:pt-20">
@@ -71,12 +74,27 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <p className="mx-auto mt-5 max-w-2xl font-serif text-xl font-normal leading-snug text-muted sm:text-2xl sm:leading-snug">
             {post.excerpt}
           </p>
+          {tags.length > 0 && (
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {tags.map((tag) => (
+                <Link
+                  key={tag.id}
+                  href={`/tag/${tag.slug}`}
+                  className="rounded-full border border-border bg-muted-surface px-3 py-1 font-sans text-xs text-muted transition-colors hover:bg-border hover:text-foreground"
+                >
+                  {tag.name}
+                </Link>
+              ))}
+            </div>
+          )}
         </header>
       </ReadingContainer>
 
       <div className="mx-auto mt-14 w-full max-w-reading border-t border-border px-4 pt-12 sm:px-6 sm:pt-14 lg:px-8 lg:pt-16">
         <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
       </div>
+
+      <CommentsSidebar postId={post.id} />
     </div>
   );
 }

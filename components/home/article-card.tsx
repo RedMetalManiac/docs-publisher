@@ -34,6 +34,20 @@ export function ArticleCard({ article }: ArticleCardProps) {
         <p className="mt-2 max-w-2xl font-sans text-base leading-relaxed text-muted">
           {article.excerpt}
         </p>
+        {article.tags && article.tags.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {article.tags.map((tag) => (
+              <Link
+                key={tag.id}
+                href={`/tag/${tag.slug}`}
+                className="rounded-full border border-border bg-muted-surface px-2.5 py-0.5 font-sans text-xs text-muted transition-colors hover:bg-border hover:text-foreground"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {tag.name}
+              </Link>
+            ))}
+          </div>
+        )}
         <span className="mt-4 inline-flex font-sans text-sm font-medium text-accent underline-offset-4 group-hover:underline">
           Read more
         </span>

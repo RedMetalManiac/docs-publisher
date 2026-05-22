@@ -1,5 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
-import type { ArticleListItem } from "@/types/article";
+import type { ArticleListItem, Tag } from "@/types/article";
 
 export type PostRow = {
   id: string;
@@ -13,13 +13,24 @@ export type PostRow = {
   created_at: string;
 };
 
-function rowToListItem(row: PostRow): ArticleListItem {
+export type PostWithPostTags = PostRow & {
+  post_tags: {
+    tags: Tag;
+  }[];
+};
+
+export type PostWithTags = PostRow & {
+  tags: Tag[];
+};
+
+function rowToListItem(row: PostWithTags): ArticleListItem {
   return {
     slug: row.slug,
     title: row.title,
     excerpt: row.excerpt,
     publishedAt: row.created_at,
     readTimeMinutes: row.read_time_minutes,
+    tags: row.tags,
   };
 }
 
@@ -28,7 +39,7 @@ export async function getRecentPosts(limit = 20): Promise<ArticleListItem[]> {
   const { data, error } = await supabase
     .from("posts")
     .select(
-      "id, slug, title, excerpt, content_html, author, source_url, read_time_minutes, created_at",
+      "id, slug, title, excerpt, content_html, author, source_url, read_time_minutes, created_at, post_tags(tags(id, name, slug))",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -38,7 +49,12 @@ export async function getRecentPosts(limit = 20): Promise<ArticleListItem[]> {
     return [];
   }
 
-  return (data as PostRow[] | null)?.map(rowToListItem) ?? [];
+  const postsWithTags = (data as PostWithPostTags[] | null)?.map((post) => ({
+    ...post,
+    tags: post.post_tags?.map((pt) => pt.tags).filter(Boolean) || [],
+  })) ?? [];
+
+  return postsWithTags.map(rowToListItem);
 }
 
 export async function getPostBySlug(slug: string): Promise<PostRow | null> {

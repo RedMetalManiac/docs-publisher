@@ -65,6 +65,27 @@ export function SubmitForm() {
         />
       </div>
 
+      <div className="space-y-2">
+        <label
+          htmlFor="tags"
+          className="block font-sans text-sm font-medium text-foreground"
+        >
+          Tags <span className="font-normal text-muted">(optional, comma-separated)</span>
+        </label>
+        <input
+          id="tags"
+          name="tags"
+          type="text"
+          autoComplete="off"
+          placeholder="design, writing, technology"
+          disabled={pending}
+          className="w-full rounded-md border border-border bg-surface px-3 py-2.5 font-sans text-base text-foreground placeholder:text-muted/70 outline-none ring-accent/30 transition-shadow focus:ring-2 disabled:opacity-60"
+        />
+        <p className="font-sans text-xs leading-relaxed text-muted">
+          Add tags to help readers discover your content. Separate multiple tags with commas.
+        </p>
+      </div>
+
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="font-sans text-xs text-muted">
           We fetch your published HTML, sanitize it, and store it as a public post.

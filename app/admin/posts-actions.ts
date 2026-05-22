@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/src/lib/supabase/server";
 import { verifyAdminSession } from "@/src/lib/admin/auth";
+import { associateTagsWithPost } from "@/src/lib/tags/actions";
 
 export type PostUpdateData = {
   id: string;
@@ -11,6 +12,7 @@ export type PostUpdateData = {
   excerpt?: string;
   author?: string;
   published?: boolean;
+  tags?: string;
 };
 
 export type PostActionResult = {
@@ -59,7 +61,13 @@ export async function updatePostMetadata(
 
   const supabase = await createClient();
 
-  const updateData: Partial<PostUpdateData> = {
+  const updateData: {
+    title?: string;
+    slug?: string;
+    excerpt?: string;
+    author?: string;
+    published?: boolean;
+  } = {
     title: data.title,
     slug: data.slug,
     excerpt: data.excerpt,
@@ -69,8 +77,8 @@ export async function updatePostMetadata(
 
   // Remove undefined values
   Object.keys(updateData).forEach((key) => {
-    if (updateData[key as keyof PostUpdateData] === undefined) {
-      delete updateData[key as keyof PostUpdateData];
+    if (updateData[key as keyof typeof updateData] === undefined) {
+      delete updateData[key as keyof typeof updateData];
     }
   });
 
@@ -81,6 +89,19 @@ export async function updatePostMetadata(
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Update tags if provided
+  if (data.tags !== undefined) {
+    const tagNames = data.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag.length > 0);
+
+    const tagResult = await associateTagsWithPost(data.id, tagNames);
+    if (tagResult.error) {
+      return { error: tagResult.error };
+    }
   }
 
   // Revalidate the admin dashboard and homepage
