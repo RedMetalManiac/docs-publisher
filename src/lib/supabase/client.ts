@@ -136,6 +136,37 @@ export type Database = {
           },
         ];
       };
+      reactions: {
+        Row: {
+          id: string;
+          post_id: string;
+          reaction_type: "like" | "dislike";
+          user_identifier: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          post_id: string;
+          reaction_type: "like" | "dislike";
+          user_identifier: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          post_id?: string;
+          reaction_type?: "like" | "dislike";
+          user_identifier?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reactions_post_id_fkey";
+            columns: ["post_id"];
+            referencedRelation: "posts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };

@@ -74,3 +74,22 @@ export async function getCommentsForPost(postId: string) {
 
   return data;
 }
+
+/**
+ * Server Action to get comment count for a post
+ */
+export async function getCommentCount(postId: string): Promise<number> {
+  const supabase = await createClient();
+
+  const { count, error } = await supabase
+    .from("comments")
+    .select("*", { count: "exact", head: true })
+    .eq("post_id", postId);
+
+  if (error) {
+    console.error("[comments] getCommentCount", error.message);
+    return 0;
+  }
+
+  return count || 0;
+}

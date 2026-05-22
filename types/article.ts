@@ -21,4 +21,7 @@ export type ArticleListItem = Pick<
   "slug" | "title" | "excerpt" | "publishedAt" | "readTimeMinutes"
 > & {
   tags?: Tag[];
+  commentCount?: number;
+  likeCount?: number;
+  dislikeCount?: number;
 };

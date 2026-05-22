@@ -2,6 +2,8 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import type { ArticleListItem, Tag } from "@/types/article";
+import { getCommentCount } from "@/src/lib/comments/actions";
+import { getReactionCounts } from "@/src/lib/reactions/actions";
 
 export type SearchResult = ArticleListItem;
 
@@ -41,7 +43,7 @@ export async function searchPosts(query: string): Promise<SearchResult[]> {
   }
 
   // Combine results
-  const results = new Map<string, SearchResult>();
+  const results = new Map<string, any>();
 
   // Add posts from direct search
   if (postsData) {
@@ -76,5 +78,21 @@ export async function searchPosts(query: string): Promise<SearchResult[]> {
     });
   }
 
-  return Array.from(results.values());
+  // Fetch comment and reaction counts for all results
+  const resultsWithCounts = await Promise.all(
+    Array.from(results.values()).map(async (post) => {
+      const [commentCount, reactionCounts] = await Promise.all([
+        getCommentCount(post.id),
+        getReactionCounts(post.id),
+      ]);
+      return {
+        ...post,
+        commentCount,
+        likeCount: reactionCounts.likeCount,
+        dislikeCount: reactionCounts.dislikeCount,
+      };
+    })
+  );
+
+  return resultsWithCounts;
 }

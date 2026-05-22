@@ -4,12 +4,20 @@ import { useEffect, useState } from "react";
 import { adminLogout } from "./actions";
 import { getAllPostsForAdmin } from "./posts-actions";
 import { getTagsForPost } from "@/src/lib/tags/actions";
+import { getCommentCount } from "@/src/lib/comments/actions";
+import { getReactionCounts } from "@/src/lib/reactions/actions";
 import type { Database } from "@/src/lib/supabase/client";
 
 type Post = Database["public"]["Tables"]["posts"]["Row"];
 
+type PostWithCounts = Post & {
+  commentCount?: number;
+  likeCount?: number;
+  dislikeCount?: number;
+};
+
 export function AdminDashboard() {
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostWithCounts[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [deletingPost, setDeletingPost] = useState<Post | null>(null);
@@ -22,7 +30,22 @@ export function AdminDashboard() {
     setLoading(true);
     const data = await getAllPostsForAdmin();
     if (data) {
-      setPosts(data);
+      // Fetch comment and reaction counts for all posts
+      const postsWithCounts = await Promise.all(
+        data.map(async (post) => {
+          const [commentCount, reactionCounts] = await Promise.all([
+            getCommentCount(post.id),
+            getReactionCounts(post.id),
+          ]);
+          return {
+            ...post,
+            commentCount,
+            likeCount: reactionCounts.likeCount,
+            dislikeCount: reactionCounts.dislikeCount,
+          };
+        })
+      );
+      setPosts(postsWithCounts);
     }
     setLoading(false);
   }
@@ -77,6 +100,15 @@ export function AdminDashboard() {
                       Published
                     </th>
                     <th className="pb-3 font-sans text-xs font-semibold uppercase tracking-wider text-muted">
+                      Comments
+                    </th>
+                    <th className="pb-3 font-sans text-xs font-semibold uppercase tracking-wider text-muted">
+                      Likes
+                    </th>
+                    <th className="pb-3 font-sans text-xs font-semibold uppercase tracking-wider text-muted">
+                      Dislikes
+                    </th>
+                    <th className="pb-3 font-sans text-xs font-semibold uppercase tracking-wider text-muted">
                       Actions
                     </th>
                   </tr>
@@ -98,6 +130,15 @@ export function AdminDashboard() {
                       </td>
                       <td className="py-4 font-sans text-sm text-muted">
                         {post.published ? "Yes" : "No"}
+                      </td>
+                      <td className="py-4 font-sans text-sm text-muted">
+                        {post.commentCount || 0}
+                      </td>
+                      <td className="py-4 font-sans text-sm text-muted">
+                        {post.likeCount || 0}
+                      </td>
+                      <td className="py-4 font-sans text-sm text-muted">
+                        {post.dislikeCount || 0}
                       </td>
                       <td className="py-4 font-sans text-sm">
                         <button

@@ -1,5 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import type { ArticleListItem, Tag } from "@/types/article";
+import { getCommentCount } from "@/src/lib/comments/actions";
+import { getReactionCounts } from "@/src/lib/reactions/actions";
 
 export type PostRow = {
   id: string;
@@ -23,7 +25,7 @@ export type PostWithTags = PostRow & {
   tags: Tag[];
 };
 
-function rowToListItem(row: PostWithTags): ArticleListItem {
+function rowToListItem(row: PostWithTags, commentCount?: number, likeCount?: number, dislikeCount?: number): ArticleListItem {
   return {
     slug: row.slug,
     title: row.title,
@@ -31,6 +33,9 @@ function rowToListItem(row: PostWithTags): ArticleListItem {
     publishedAt: row.created_at,
     readTimeMinutes: row.read_time_minutes,
     tags: row.tags,
+    commentCount,
+    likeCount,
+    dislikeCount,
   };
 }
 
@@ -54,7 +59,30 @@ export async function getRecentPosts(limit = 20): Promise<ArticleListItem[]> {
     tags: post.post_tags?.map((pt) => pt.tags).filter(Boolean) || [],
   })) ?? [];
 
-  return postsWithTags.map(rowToListItem);
+  // Fetch comment and reaction counts for all posts
+  const postsWithCounts = await Promise.all(
+    postsWithTags.map(async (post) => {
+      const [commentCount, reactionCounts] = await Promise.all([
+        getCommentCount(post.id),
+        getReactionCounts(post.id),
+      ]);
+      return {
+        ...post,
+        commentCount,
+        likeCount: reactionCounts.likeCount,
+        dislikeCount: reactionCounts.dislikeCount,
+      };
+    })
+  );
+
+  return postsWithCounts.map((post) =>
+    rowToListItem(
+      post,
+      post.commentCount,
+      post.likeCount,
+      post.dislikeCount,
+    )
+  );
 }
 
 export async function getPostBySlug(slug: string): Promise<PostRow | null> {
