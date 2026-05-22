@@ -28,6 +28,7 @@ export type Database = {
           source_url: string;
           read_time_minutes: number;
           created_at: string;
+          published: boolean;
         };
         Insert: {
           id?: string;
@@ -39,6 +40,7 @@ export type Database = {
           source_url: string;
           read_time_minutes?: number;
           created_at?: string;
+          published?: boolean;
         };
         Update: {
           id?: string;
@@ -50,6 +52,7 @@ export type Database = {
           source_url?: string;
           read_time_minutes?: number;
           created_at?: string;
+          published?: boolean;
         };
         Relationships: [];
       };
